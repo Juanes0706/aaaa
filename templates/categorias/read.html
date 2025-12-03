@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Categorías - Inventario y Ventas API</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/">Inicio</a>
+        <div class="dropdown">
+            <button class="dropbtn">Categorías</button>
+            <div class="dropdown-content">
+                <a href="/categorias">Ver Categorías</a>
+                <a href="/categorias/create">Crear Categoría</a>
+                <a href="/categorias/update">Actualizar Categoría</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Productos</button>
+            <div class="dropdown-content">
+                <a href="/productos">Ver Productos</a>
+                <a href="/productos/update">Actualizar Producto</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Clientes</button>
+            <div class="dropdown-content">
+                <a href="/clientes">Ver Clientes</a>
+                <a href="/clientes/create">Crear Cliente</a>
+                <a href="/clientes/update">Actualizar Cliente</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Ventas</button>
+            <div class="dropdown-content">
+                <a href="/ventas">Ver Ventas</a>
+                <a href="/ventas/update">Actualizar Venta</a>
+                <a href="/ventas/delete">Eliminar Venta</a>
+            </div>
+        </div>
+        <a href="/historial">Historial</a>
+        <a href="/planning">Planificación</a>
+        <a href="/informacion-del-proyecto">Información del Proyecto</a>
+    </nav>
+
+    <div class="container">
+        <h1>Ver Categorías</h1>
+
+        <div id="categorias-list">
+            <p>Cargando categorías...</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadCategorias() {
+            try {
+                const response = await fetch('/api/categorias');
+                const categorias = await response.json();
+                const listDiv = document.getElementById('categorias-list');
+
+                if (categorias.length === 0) {
+                    listDiv.innerHTML = '<p>No hay categorías disponibles.</p>';
+                    return;
+                }
+
+                let html = '<table><thead><tr><th>ID</th><th>Nombre</th><th>Código</th><th>Imagen</th><th>Fecha de Creación</th></tr></thead><tbody>';
+                categorias.forEach(categoria => {
+                    html += `<tr>
+                        <td>${categoria.id}</td>
+                        <td>${categoria.nombre}</td>
+                        <td>${categoria.codigo || 'N/A'}</td>
+                        <td>${categoria.imagen_url ? `<img src="${categoria.imagen_url}" alt="Imagen" style="max-width: 50px;">` : 'N/A'}</td>
+                        <td>${categoria.fecha_creacion}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                listDiv.innerHTML = html;
+            } catch (error) {
+                document.getElementById('categorias-list').innerHTML = '<p>Error al cargar categorías.</p>';
+                console.error('Error:', error);
+            }
+        }
+
+        window.onload = loadCategorias;
+    </script>
+</body>
+</html>

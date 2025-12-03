@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Ventas - Inventario y Ventas API</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/">Inicio</a>
+        <div class="dropdown">
+            <button class="dropbtn">Categorías</button>
+            <div class="dropdown-content">
+                <a href="/categorias">Ver Categorías</a>
+                <a href="/categorias/create">Crear Categoría</a>
+                <a href="/categorias/update">Actualizar Categoría</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Productos</button>
+            <div class="dropdown-content">
+                <a href="/productos">Ver Productos</a>
+                <a href="/productos/update">Actualizar Producto</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Clientes</button>
+            <div class="dropdown-content">
+                <a href="/clientes">Ver Clientes</a>
+                <a href="/clientes/create">Crear Cliente</a>
+                <a href="/clientes/update">Actualizar Cliente</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Ventas</button>
+            <div class="dropdown-content">
+                <a href="/ventas">Ver Ventas</a>
+                <a href="/ventas/update">Actualizar Venta</a>
+                <a href="/ventas/delete">Eliminar Venta</a>
+            </div>
+        </div>
+        <a href="/historial">Historial</a>
+        <a href="/planning">Planificación</a>
+        <a href="/informacion-del-proyecto">Información del Proyecto</a>
+    </nav>
+
+    <div class="container">
+        <h1>Ver Ventas</h1>
+
+        <div id="ventas-list">
+            <p>Cargando ventas...</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadVentas() {
+            try {
+                const response = await fetch('/compras');  // Assuming ventas are compras
+                const ventas = await response.json();
+                const listDiv = document.getElementById('ventas-list');
+
+                if (ventas.length === 0) {
+                    listDiv.innerHTML = '<p>No hay ventas disponibles.</p>';
+                    return;
+                }
+
+                let html = '<table><thead><tr><th>ID</th><th>Cliente</th><th>Producto</th><th>Cantidad</th><th>Precio Unitario</th><th>Total</th><th>Fecha</th></tr></thead><tbody>';
+                ventas.forEach(venta => {
+                    html += `<tr>
+                        <td>${venta.id}</td>
+                        <td>${venta.cliente ? venta.cliente.nombre : 'N/A'}</td>
+                        <td>${venta.producto ? venta.producto.nombre : 'N/A'}</td>
+                        <td>${venta.cantidad}</td>
+                        <td>${venta.precio_unitario_aplicado}</td>
+                        <td>${venta.total}</td>
+                        <td>${venta.fecha}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                listDiv.innerHTML = html;
+            } catch (error) {
+                document.getElementById('ventas-list').innerHTML = '<p>Error al cargar ventas.</p>';
+                console.error('Error:', error);
+            }
+        }
+
+        window.onload = loadVentas;
+    </script>
+</body>
+</html>
