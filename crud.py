@@ -65,11 +65,8 @@ async def crear_usuario(db: AsyncSession, data: schemas.UsuarioCreate) -> Usuari
     await db.commit()
     await db.refresh(obj)
 
-    # Load multimedia and nested relationships to avoid lazy loading issues during serialization
-    stmt = select(Cliente).where(Cliente.id == obj.id).options(
-        joinedload(Cliente.usuario).selectinload(Usuario.multimedia),
-        selectinload(Cliente.multimedia)
-    )
+    # Load multimedia to avoid lazy loading issues during serialization
+    stmt = select(Usuario).where(Usuario.id == obj.id).options(selectinload(Usuario.multimedia))
     q = await db.execute(stmt)
     obj = q.scalar_one()
     return obj
@@ -149,6 +146,11 @@ async def actualizar_usuario(
 
     await db.commit()
     await db.refresh(obj)
+
+    # Load multimedia to avoid lazy loading issues during serialization
+    stmt = select(Usuario).where(Usuario.id == obj.id).options(selectinload(Usuario.multimedia))
+    q = await db.execute(stmt)
+    obj = q.scalar_one()
     return obj
 
 
