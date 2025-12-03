@@ -182,7 +182,7 @@ async def planning_page(request: Request):
     return templates.TemplateResponse("planning.html", {"request": request})
 
 
-@app.get("/informacion-del-proyecto", tags=["Pages"])
+@app.get("/informacion_del_proyecto", tags=["Pages"])
 async def informacion_del_proyecto_page(request: Request):
     return templates.TemplateResponse("informacion_del_proyecto.html", {"request": request})
 

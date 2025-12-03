@@ -86,8 +86,8 @@
             const messageDiv = document.getElementById('message');
 
             try {
-                // Se asume que la ruta de la API para crear categorías es '/categorias'
-                const response = await fetch('/categorias', {
+                // Se asume que la ruta de la API para crear categorías es '/api/categorias'
+                const response = await fetch('/api/categorias', {
                     method: 'POST',
                     body: formData
                 });
