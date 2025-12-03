@@ -117,8 +117,8 @@
             if (imagenInput.files[0]) formData.append('imagen', imagenInput.files[0]);
 
             try {
-                // Se asume la ruta de actualización de productos es PUT /productos/{id}
-                const response = await fetch(`/productos/${id}`, {
+                // Se asume la ruta de actualización de productos es PUT /api/productos/{id}
+                const response = await fetch(`/api/productos/${id}`, {
                     method: 'PUT',
                     body: formData
                 });
