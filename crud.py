@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from models import (
     Usuario,
@@ -189,6 +189,11 @@ async def crear_cliente(db: AsyncSession, data: schemas.ClienteCreate) -> Client
     db.add(obj)
     await db.commit()
     await db.refresh(obj)
+
+    # Load multimedia to avoid lazy loading issues during serialization
+    stmt = select(Cliente).where(Cliente.id == obj.id).options(selectinload(Cliente.multimedia))
+    q = await db.execute(stmt)
+    obj = q.scalar_one()
     return obj
 
 

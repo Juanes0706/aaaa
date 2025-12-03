@@ -68,8 +68,8 @@
     <script>
         async function loadClientes() {
             try {
-                // Se asume la ruta de lectura de clientes es /clientes
-                const response = await fetch('/clientes');
+                // Se asume la ruta de lectura de clientes es /api/clientes
+                const response = await fetch('/api/clientes');
                 const clientes = await response.json();
                 const listDiv = document.getElementById('clientes-list');
 
@@ -111,8 +111,8 @@
             if (direccion) data.direccion = direccion; // Opcional
 
             try {
-                // Se asume que el endpoint de actualización es PUT /clientes/{id}
-                const response = await fetch(`/clientes/${id}`, {
+                // Se asume que el endpoint de actualización es PUT /api/clientes/{id}
+                const response = await fetch(`/api/clientes/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
