@@ -48,8 +48,8 @@
             const messageDiv = document.getElementById('message');
 
             try {
-                // Se asume la ruta de la API para crear clientes es POST /clientes
-                const response = await fetch('/clientes', {
+                // Se asume la ruta de la API para crear clientes es POST /api/clientes
+                const response = await fetch('/api/clientes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }, // Importante para enviar JSON
                     body: JSON.stringify(data)
