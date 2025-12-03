@@ -17,7 +17,7 @@ async def listar_clientes(
     tipo_cliente: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
-    return await crud.listar_clientes(db)
+    return await crud.listar_clientes(db, nombre=nombre, cedula=cedula, tipo_cliente=tipo_cliente)
 
 @router.post("/", response_model=schemas.ClienteRead, status_code=status.HTTP_201_CREATED)
 async def crear_cliente(payload: schemas.ClienteCreate, db: AsyncSession = Depends(get_db)):

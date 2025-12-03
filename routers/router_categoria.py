@@ -27,8 +27,7 @@ async def listar_categorias(
     codigo: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
-    # Si tu crud.listar_categorias acepta filtros, pásalos; si no, solo db
-    return await crud.listar_categorias(db)
+    return await crud.listar_categorias(db, nombre=nombre, codigo=codigo)
 
 
 @router.post(

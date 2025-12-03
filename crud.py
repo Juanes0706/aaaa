@@ -67,8 +67,31 @@ async def crear_usuario(db: AsyncSession, data: schemas.UsuarioCreate) -> Usuari
     return obj
 
 
-async def listar_usuarios(db: AsyncSession) -> List[Usuario]:
-    q = await db.execute(select(Usuario))
+async def listar_usuarios(
+    db: AsyncSession,
+    nombre: Optional[str] = None,
+    correo: Optional[str] = None,
+    cedula: Optional[str] = None,
+    rol: Optional[str] = None,
+    tipo: Optional[str] = None,
+    cliente_frecuente: Optional[bool] = None,
+) -> List[Usuario]:
+    stmt = select(Usuario)
+
+    if nombre:
+        stmt = stmt.where(Usuario.nombre.ilike(f"%{nombre}%"))
+    if correo:
+        stmt = stmt.where(Usuario.correo.ilike(f"%{correo}%"))
+    if cedula:
+        stmt = stmt.where(Usuario.cedula.ilike(f"%{cedula}%"))
+    if rol:
+        stmt = stmt.where(Usuario.rol == rol)
+    if tipo:
+        stmt = stmt.where(Usuario.tipo == tipo)
+    if cliente_frecuente is not None:
+        stmt = stmt.where(Usuario.cliente_frecuente == cliente_frecuente)
+
+    q = await db.execute(stmt)
     return q.scalars().all()
 
 
@@ -169,10 +192,22 @@ async def crear_cliente(db: AsyncSession, data: schemas.ClienteCreate) -> Client
     return obj
 
 
-async def listar_clientes(db: AsyncSession) -> List[Cliente]:
-    q = await db.execute(
-        select(Cliente).options(joinedload(Cliente.usuario))
-    )
+async def listar_clientes(
+    db: AsyncSession,
+    nombre: Optional[str] = None,
+    cedula: Optional[str] = None,
+    tipo_cliente: Optional[str] = None,
+) -> List[Cliente]:
+    stmt = select(Cliente).options(joinedload(Cliente.usuario))
+
+    if nombre:
+        stmt = stmt.where(Cliente.nombre.ilike(f"%{nombre}%"))
+    if cedula:
+        stmt = stmt.where(Cliente.cedula.ilike(f"%{cedula}%"))
+    if tipo_cliente:
+        stmt = stmt.where(Cliente.tipo_cliente == tipo_cliente)
+
+    q = await db.execute(stmt)
     return q.scalars().all()
 
 
@@ -259,8 +294,19 @@ async def crear_categoria(db: AsyncSession, data: schemas.CategoriaCreate) -> Ca
     return obj
 
 
-async def listar_categorias(db: AsyncSession) -> List[Categoria]:
-    q = await db.execute(select(Categoria))
+async def listar_categorias(
+    db: AsyncSession,
+    nombre: Optional[str] = None,
+    codigo: Optional[str] = None,
+) -> List[Categoria]:
+    stmt = select(Categoria)
+
+    if nombre:
+        stmt = stmt.where(Categoria.nombre.ilike(f"%{nombre}%"))
+    if codigo:
+        stmt = stmt.where(Categoria.codigo.ilike(f"%{codigo}%"))
+
+    q = await db.execute(stmt)
     return q.scalars().all()
 
 
@@ -342,6 +388,7 @@ async def listar_productos(
     db: AsyncSession,
     nombre: Optional[str] = None,
     min_stock: Optional[int] = None,
+    categoria_id: Optional[int] = None,
 ) -> List[Producto]:
     stmt = select(Producto).options(joinedload(Producto.categoria))
 
@@ -349,6 +396,8 @@ async def listar_productos(
         stmt = stmt.where(Producto.nombre.ilike(f"%{nombre}%"))
     if min_stock is not None:
         stmt = stmt.where(Producto.cantidad >= min_stock)
+    if categoria_id is not None:
+        stmt = stmt.where(Producto.categoria_id == categoria_id)
 
     q = await db.execute(stmt)
     return q.scalars().all()
@@ -438,14 +487,25 @@ async def crear_compra(db: AsyncSession, data: schemas.CompraCreate) -> Compra:
     return obj
 
 
-async def listar_compras(db: AsyncSession) -> List[Compra]:
-    q = await db.execute(
-        select(Compra)
-        .options(
-            joinedload(Compra.cliente),
-            joinedload(Compra.producto),
-        )
+async def listar_compras(
+    db: AsyncSession,
+    cliente_id: Optional[int] = None,
+    producto_id: Optional[int] = None,
+    min_total: Optional[float] = None,
+) -> List[Compra]:
+    stmt = select(Compra).options(
+        joinedload(Compra.cliente),
+        joinedload(Compra.producto),
     )
+
+    if cliente_id is not None:
+        stmt = stmt.where(Compra.cliente_id == cliente_id)
+    if producto_id is not None:
+        stmt = stmt.where(Compra.producto_id == producto_id)
+    if min_total is not None:
+        stmt = stmt.where(Compra.total >= min_total)
+
+    q = await db.execute(stmt)
     return q.scalars().all()
 
 
