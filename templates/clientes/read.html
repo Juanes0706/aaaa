@@ -9,41 +9,53 @@
 <body>
     <nav class="navbar">
         <a href="/">Inicio</a>
+        
         <div class="dropdown">
             <button class="dropbtn">Categorías</button>
             <div class="dropdown-content">
                 <a href="/categorias">Ver Categorías</a>
                 <a href="/categorias/create">Crear Categoría</a>
                 <a href="/categorias/update">Actualizar Categoría</a>
+                <a href="/categorias/delete">Eliminar Categoría</a>
             </div>
         </div>
+        
         <div class="dropdown">
             <button class="dropbtn">Productos</button>
             <div class="dropdown-content">
                 <a href="/productos">Ver Productos</a>
+                <a href="/productos/create">Crear Producto</a>
                 <a href="/productos/update">Actualizar Producto</a>
+                <a href="/productos/delete">Eliminar Producto</a>
             </div>
         </div>
+        
         <div class="dropdown">
             <button class="dropbtn">Clientes</button>
             <div class="dropdown-content">
                 <a href="/clientes">Ver Clientes</a>
                 <a href="/clientes/create">Crear Cliente</a>
                 <a href="/clientes/update">Actualizar Cliente</a>
+                <a href="/clientes/delete">Eliminar Cliente</a>
             </div>
         </div>
+        
         <div class="dropdown">
             <button class="dropbtn">Ventas</button>
             <div class="dropdown-content">
                 <a href="/ventas">Ver Ventas</a>
+                <a href="/ventas/create">Crear Venta</a>
                 <a href="/ventas/update">Actualizar Venta</a>
                 <a href="/ventas/delete">Eliminar Venta</a>
             </div>
         </div>
+        
         <a href="/historial">Historial</a>
         <a href="/planning">Planificación</a>
-        <a href="/informacion-del-proyecto">Información del Proyecto</a>
+        <a href="/informacion_del_proyecto">Información del Proyecto</a>
     </nav>
+    
+    {% include 'sidebar.html' %}
 
     <div class="container">
         <h1>Ver Clientes</h1>
@@ -56,7 +68,8 @@
     <script>
         async function loadClientes() {
             try {
-                const response = await fetch('/clientes');
+                // Se asume la ruta de lectura de clientes es /clientes
+                const response = await fetch('/clientes'); 
                 const clientes = await response.json();
                 const listDiv = document.getElementById('clientes-list');
 

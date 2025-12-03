@@ -12,28 +12,28 @@
         <div class="dropdown">
             <button class="dropbtn">Categorías</button>
             <div class="dropdown-content">
-                <a href="../categorias/read.html">Ver Categorías</a>
-                <a href="../categorias/create.html">Crear Categoría</a>
-                <a href="../categorias/update.html">Actualizar Categoría</a>
-                <a href="../categorias/delete.html">Eliminar Categoría</a>
+                <a href="/categorias/read.html">Ver Categorías</a>
+                <a href="/categorias/create.html">Crear Categoría</a>
+                <a href="/categorias/update.html">Actualizar Categoría</a>
+                <a href="/categorias/delete.html">Eliminar Categoría</a>
             </div>
         </div>
         <div class="dropdown">
             <button class="dropbtn">Productos</button>
             <div class="dropdown-content">
-                <a href="../productos/read.html">Ver Productos</a>
-                <a href="../productos/create.html">Crear Producto</a>
-                <a href="../productos/update.html">Actualizar Producto</a>
-                <a href="../productos/delete.html">Eliminar Producto</a>
+                <a href="/productos/read.html">Ver Productos</a>
+                <a href="/productos/create.html">Crear Producto</a>
+                <a href="/productos/update.html">Actualizar Producto</a>
+                <a href="/productos/delete.html">Eliminar Producto</a>
             </div>
         </div>
         <div class="dropdown">
             <button class="dropbtn">Clientes</button>
             <div class="dropdown-content">
-                <a href="../clientes/read.html">Ver Clientes</a>
-                <a href="../clientes/create.html">Crear Cliente</a>
-                <a href="../clientes/update.html">Actualizar Cliente</a>
-                <a href="../clientes/delete.html">Eliminar Cliente</a>
+                <a href="/clientes/read.html">Ver Clientes</a>
+                <a href="/clientes/create.html">Crear Cliente</a>
+                <a href="/clientes/update.html">Actualizar Cliente</a>
+                <a href="/clientes/delete.html">Eliminar Cliente</a>
             </div>
         </div>
         <div class="dropdown">
@@ -52,7 +52,124 @@
 
     <div class="container">
         <h1>Actualizar Venta</h1>
-        <p>Nota: La actualización de ventas no está disponible en la API actual.</p>
+
+        <label for="venta-select">Seleccionar Venta a Actualizar:</label>
+        <select id="venta-select" onchange="loadVentaDetails(this.value)">
+            <option value="">Cargando ventas...</option>
+        </select>
+        
+        <div id="venta-details" style="margin-top: 20px;">
+            </div>
+
+        <div id="message" style="margin-top: 20px;"></div>
     </div>
+
+    <script>
+        const API_URL = '/compras';
+
+        // 1. Cargar la lista de ventas en el selector
+        async function loadVentaSelector() {
+            const select = document.getElementById('venta-select');
+            select.innerHTML = '<option value="">Cargando ventas...</option>';
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('No se pudo cargar la lista de ventas.');
+                
+                const ventas = await response.json();
+                
+                let options = '<option value="">-- Seleccione una Venta --</option>';
+                ventas.forEach(venta => {
+                    // Muestra el ID, nombre del cliente y total para facilitar la selección
+                    const clienteNombre = venta.cliente ? venta.cliente.nombre : 'Cliente Desconocido';
+                    options += `<option value="${venta.id}">ID ${venta.id} - ${clienteNombre} - Total: $${venta.total}</option>`;
+                });
+                select.innerHTML = options;
+
+            } catch (error) {
+                select.innerHTML = '<option value="">Error al cargar ventas</option>';
+                console.error('Error al cargar selector:', error);
+            }
+        }
+
+        // 2. Cargar los detalles de la venta seleccionada en el formulario
+        async function loadVentaDetails(id) {
+            const detailsDiv = document.getElementById('venta-details');
+            if (!id) {
+                detailsDiv.innerHTML = '';
+                return;
+            }
+
+            detailsDiv.innerHTML = '<p>Cargando detalles...</p>';
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                if (!response.ok) throw new Error('Venta no encontrada.');
+
+                const venta = await response.json();
+
+                // Renderizar formulario con datos actuales
+                detailsDiv.innerHTML = `
+                    <form id="update-venta-form">
+                        <input type="hidden" id="venta_id" value="${venta.id}">
+                        
+                        <h2>Venta Seleccionada: ID ${venta.id}</h2>
+                        <p>Cliente: ${venta.cliente ? venta.cliente.nombre : 'N/A'}</p>
+                        <p>Producto: ${venta.producto ? venta.producto.nombre : 'N/A'}</p>
+                        
+                        <label for="cantidad">Cantidad:</label>
+                        <input type="number" id="cantidad" value="${venta.cantidad}" required>
+
+                        <label for="precio_unitario_aplicado">Precio Unitario Aplicado:</label>
+                        <input type="number" step="0.01" id="precio_unitario_aplicado" value="${venta.precio_unitario_aplicado}" required>
+
+                        <button type="submit">Guardar Cambios</button>
+                    </form>
+                `;
+                
+                // Asignar el event listener al formulario de actualización
+                document.getElementById('update-venta-form').addEventListener('submit', handleUpdate);
+
+            } catch (error) {
+                detailsDiv.innerHTML = `<p style="color: red;">Error al cargar detalles: ${error.message}</p>`;
+                console.error('Error al cargar detalles:', error);
+            }
+        }
+
+        // 3. Manejar el envío de la actualización (PUT/PATCH)
+        async function handleUpdate(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('venta_id').value;
+            const data = {
+                // Se asume que solo la cantidad y el precio pueden cambiarse post-creación
+                cantidad: parseInt(document.getElementById('cantidad').value),
+                precio_unitario_aplicado: parseFloat(document.getElementById('precio_unitario_aplicado').value)
+                // Es posible que el backend requiera otros campos, como el ID del cliente y producto
+            };
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = '<p>Actualizando...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT', // Usamos PUT para reemplazar la venta o PATCH para actualizar campos específicos
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    messageDiv.innerHTML = '<p style="color: green;">Venta actualizada exitosamente.</p>';
+                    // Opcional: recargar el selector para reflejar cambios en el resumen
+                    loadVentaSelector(); 
+                } else {
+                    const error = await response.json();
+                    messageDiv.innerHTML = `<p style="color: red;">Error al actualizar: ${error.detail}</p>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = `<p style="color: red;">Error de red: ${error.message}</p>`;
+            }
+        }
+
+        // Inicializar: cargar el selector al iniciar la página
+        window.onload = loadVentaSelector;
+    </script>
 </body>
 </html>
