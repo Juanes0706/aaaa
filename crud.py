@@ -197,6 +197,7 @@ async def listar_clientes(
     nombre: Optional[str] = None,
     cedula: Optional[str] = None,
     tipo_cliente: Optional[str] = None,
+    cliente_frecuente: Optional[bool] = None,
 ) -> List[Cliente]:
     stmt = select(Cliente).options(joinedload(Cliente.usuario))
 
@@ -206,6 +207,8 @@ async def listar_clientes(
         stmt = stmt.where(Cliente.cedula.ilike(f"%{cedula}%"))
     if tipo_cliente:
         stmt = stmt.where(Cliente.tipo_cliente == tipo_cliente)
+    if cliente_frecuente is not None:
+        stmt = stmt.where(Cliente.cliente_frecuente == cliente_frecuente)
 
     q = await db.execute(stmt)
     return q.scalars().all()
@@ -387,17 +390,26 @@ async def crear_producto(db: AsyncSession, data: schemas.ProductoCreate) -> Prod
 async def listar_productos(
     db: AsyncSession,
     nombre: Optional[str] = None,
-    min_stock: Optional[int] = None,
     categoria_id: Optional[int] = None,
+    precio_min: Optional[float] = None,
+    precio_max: Optional[float] = None,
+    stock_min: Optional[int] = None,
+    stock_max: Optional[int] = None,
 ) -> List[Producto]:
     stmt = select(Producto).options(joinedload(Producto.categoria))
 
     if nombre:
         stmt = stmt.where(Producto.nombre.ilike(f"%{nombre}%"))
-    if min_stock is not None:
-        stmt = stmt.where(Producto.cantidad >= min_stock)
     if categoria_id is not None:
         stmt = stmt.where(Producto.categoria_id == categoria_id)
+    if precio_min is not None:
+        stmt = stmt.where(Producto.valor_unitario >= precio_min)
+    if precio_max is not None:
+        stmt = stmt.where(Producto.valor_unitario <= precio_max)
+    if stock_min is not None:
+        stmt = stmt.where(Producto.cantidad >= stock_min)
+    if stock_max is not None:
+        stmt = stmt.where(Producto.cantidad <= stock_max)
 
     q = await db.execute(stmt)
     return q.scalars().all()
@@ -492,6 +504,11 @@ async def listar_compras(
     cliente_id: Optional[int] = None,
     producto_id: Optional[int] = None,
     min_total: Optional[float] = None,
+    max_total: Optional[float] = None,
+    fecha_desde: Optional[str] = None,
+    fecha_hasta: Optional[str] = None,
+    nombre_cliente: Optional[str] = None,
+    nombre_producto: Optional[str] = None,
 ) -> List[Compra]:
     stmt = select(Compra).options(
         joinedload(Compra.cliente),
@@ -504,6 +521,16 @@ async def listar_compras(
         stmt = stmt.where(Compra.producto_id == producto_id)
     if min_total is not None:
         stmt = stmt.where(Compra.total >= min_total)
+    if max_total is not None:
+        stmt = stmt.where(Compra.total <= max_total)
+    if fecha_desde:
+        stmt = stmt.where(Compra.fecha >= fecha_desde)
+    if fecha_hasta:
+        stmt = stmt.where(Compra.fecha <= fecha_hasta)
+    if nombre_cliente:
+        stmt = stmt.where(Compra.cliente.has(Cliente.nombre.ilike(f"%{nombre_cliente}%")))
+    if nombre_producto:
+        stmt = stmt.where(Compra.producto.has(Producto.nombre.ilike(f"%{nombre_producto}%")))
 
     q = await db.execute(stmt)
     return q.scalars().all()
