@@ -204,7 +204,7 @@ async def listar_clientes(
     tipo_cliente: Optional[str] = None,
     cliente_frecuente: Optional[bool] = None,
 ) -> List[Cliente]:
-    stmt = select(Cliente).options(joinedload(Cliente.usuario))
+    stmt = select(Cliente).options(joinedload(Cliente.usuario), selectinload(Cliente.multimedia))
 
     if nombre:
         stmt = stmt.where(Cliente.nombre.ilike(f"%{nombre}%"))

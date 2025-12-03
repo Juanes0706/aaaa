@@ -14,11 +14,11 @@ router = APIRouter(prefix="/api/productos", tags=["Productos"])
 @router.get("/", response_model=List[schemas.ProductoRead])
 async def listar_productos(
     nombre: Optional[str] = None,
-    min_stock: Optional[int] = None,
+    stock_min: Optional[int] = None,
     categoria_id: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
 ):
-    return await crud.listar_productos(db, nombre=nombre, min_stock=min_stock, categoria_id=categoria_id)
+    return await crud.listar_productos(db, nombre=nombre, stock_min=stock_min, categoria_id=categoria_id)
 
 @router.post("/", response_model=schemas.ProductoRead, status_code=status.HTTP_201_CREATED)
 async def crear_producto(
