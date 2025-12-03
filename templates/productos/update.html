@@ -66,8 +66,8 @@
     <script>
         async function loadProductos() {
             try {
-                // Se asume la ruta de lectura de productos es /productos
-                const response = await fetch('/productos');
+                // Se asume la ruta de lectura de productos es /api/productos
+                const response = await fetch('/api/productos');
                 const productos = await response.json();
                 const listDiv = document.getElementById('productos-list');
 
