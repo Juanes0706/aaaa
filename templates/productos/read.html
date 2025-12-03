@@ -68,7 +68,7 @@
     <script>
         async function loadProductos() {
             try {
-                const response = await fetch('/productos'); // Se asume la ruta de lectura de productos es /productos
+                const response = await fetch('/api/productos'); // Se asume la ruta de lectura de productos es /api/productos
                 const productos = await response.json();
                 const listDiv = document.getElementById('productos-list');
 
@@ -87,7 +87,7 @@
                         <td>${producto.valor_unitario}</td>
                         <td>${producto.valor_mayorista || 'N/A'}</td>
                         <td>${producto.categoria ? producto.categoria.nombre : 'N/A'}</td>
-                        <td>${producto.imagen_url ? \`<img src="\${producto.imagen_url}" alt="Imagen" style="max-width: 50px;">\` : 'N/A'}</td>
+                        <td>${producto.imagen_url ? `<img src="${producto.imagen_url}" alt="Imagen" style="max-width: 50px;">` : 'N/A'}</td>
                         <td>${producto.fecha_creacion}</td>
                     </tr>`;
                 });
