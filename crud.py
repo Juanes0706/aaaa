@@ -321,6 +321,12 @@ async def crear_categoria(db: AsyncSession, data: schemas.CategoriaCreate) -> Ca
     if q.scalar_one_or_none():
         raise HTTPException(400, "Ya existe una categoría con ese nombre")
 
+    # Verificar código único si fue proporcionado
+    if getattr(data, 'codigo', None):
+        q2 = await db.execute(select(Categoria).where(Categoria.codigo == data.codigo))
+        if q2.scalar_one_or_none():
+            raise HTTPException(400, "Ya existe una categoría con ese código")
+
     obj = Categoria(**data.model_dump())
     db.add(obj)
     await db.commit()
@@ -370,6 +376,20 @@ async def actualizar_categoria(
             raise HTTPException(
                 400,
                 "Ya existe otra categoría con ese nombre",
+            )
+
+    # Verificar código único si se está actualizando
+    if "codigo" in update_data and update_data["codigo"] is not None:
+        q3 = await db.execute(
+            select(Categoria).where(
+                Categoria.codigo == update_data["codigo"],
+                Categoria.id != categoria_id,
+            )
+        )
+        if q3.scalar_one_or_none():
+            raise HTTPException(
+                400,
+                "Ya existe otra categoría con ese código",
             )
 
     for field, value in update_data.items():
