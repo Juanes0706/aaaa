@@ -233,7 +233,7 @@ async def obtener_cliente(db: AsyncSession, cliente_id: int) -> Cliente:
     q = await db.execute(
         select(Cliente)
         .where(Cliente.id == cliente_id)
-        .options(joinedload(Cliente.usuario))
+        .options(joinedload(Cliente.usuario).selectinload(Usuario.multimedia), selectinload(Cliente.multimedia))
     )
     obj = q.scalar_one_or_none()
     if not obj:
@@ -267,8 +267,14 @@ async def actualizar_cliente(
         setattr(obj, field, value)
 
     await db.commit()
-    await db.refresh(obj)
-    return obj
+
+    # Return a fresh object with all relationships loaded to avoid lazy loading issues
+    stmt = select(Cliente).where(Cliente.id == cliente_id).options(
+        joinedload(Cliente.usuario).selectinload(Usuario.multimedia),
+        selectinload(Cliente.multimedia)
+    )
+    q = await db.execute(stmt)
+    return q.scalar_one()
 
 
 async def borrar_cliente(db: AsyncSession, cliente_id: int) -> None:

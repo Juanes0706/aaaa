@@ -97,6 +97,7 @@ class ClienteUpdate(BaseModel):
 class ClienteRead(ClienteBase):
     id: int
     creado_en: datetime
+    usuario: Optional[UsuarioRead] = None
     multimedia: Optional[List[MultimediaRead]] = []
 
     model_config = ConfigDict(from_attributes=True)
