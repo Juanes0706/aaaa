@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Producto - Inventario y Ventas API</title>
+    <title>Crear Venta - Inventario y Ventas API</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -58,32 +58,26 @@
     {% include 'sidebar.html' %}
 
     <div class="container">
-        <h1>Crear Producto</h1>
+        <h1>Crear Venta</h1>
 
         <div class="form-section">
-            <form id="create-producto-form">
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" name="nombre" required />
+            <form id="create-venta-form">
+                <label for="cliente_id">ID Cliente:</label>
+                <input type="number" id="cliente_id" name="cliente_id" required />
 
-                <label for="descripcion">Descripción:</label>
-                <textarea id="descripcion" name="descripcion"></textarea>
+                <label for="producto_id">ID Producto:</label>
+                <input type="number" id="producto_id" name="producto_id" required />
 
                 <label for="cantidad">Cantidad:</label>
-                <input type="number" id="cantidad" name="cantidad" required />
+                <input type="number" id="cantidad" name="cantidad" min="1" required />
 
-                <label for="valor_unitario">Valor Unitario:</label>
-                <input type="number" step="0.01" id="valor_unitario" name="valor_unitario" required />
+                <label for="precio_unitario_aplicado">Precio Unitario:</label>
+                <input type="number" step="0.01" id="precio_unitario_aplicado" name="precio_unitario_aplicado" required />
 
-                <label for="valor_mayorista">Valor Mayorista:</label>
-                <input type="number" step="0.01" id="valor_mayorista" name="valor_mayorista" />
+                <label for="total">Total:</label>
+                <input type="number" step="0.01" id="total" name="total" required />
 
-                <label for="categoria_id">ID de la Categoría:</label>
-                <input type="number" id="categoria_id" name="categoria_id" required />
-
-                <label for="imagen">Imagen:</label>
-                <input type="file" id="imagen" name="imagen" accept="image/*" />
-
-                <button type="submit">Crear Producto</button>
+                <button type="submit">Crear Venta</button>
             </form>
         </div>
 
@@ -91,22 +85,28 @@
     </div>
 
     <script>
-        document.getElementById('create-producto-form').addEventListener('submit', async function(event) {
+        document.getElementById('create-venta-form').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const formData = new FormData(this);
+            const formData = {
+                cliente_id: parseInt(document.getElementById('cliente_id').value),
+                producto_id: parseInt(document.getElementById('producto_id').value),
+                cantidad: parseInt(document.getElementById('cantidad').value),
+                precio_unitario_aplicado: parseFloat(document.getElementById('precio_unitario_aplicado').value),
+                total: parseFloat(document.getElementById('total').value)
+            };
             const messageDiv = document.getElementById('message');
 
             try {
-                // Ruta API corregida de /api/productos a /productos
-                const response = await fetch('/productos', {
+                const response = await fetch('/compras', {
                     method: 'POST',
-                    body: formData
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
                 });
 
                 if (response.ok) {
                     const result = await response.json();
-                    messageDiv.innerHTML = '<p style="color: green;">Producto creado exitosamente: ' + result.nombre + '</p>';
+                    messageDiv.innerHTML = '<p style="color: green;">Venta creada exitosamente. ID: ' + result.id + '</p>';
                     this.reset();
                 } else {
                     const error = await response.json();
@@ -114,6 +114,38 @@
                 }
             } catch (error) {
                 messageDiv.innerHTML = '<p style="color: red;">Error de red: ' + error.message + '</p>';
+            }
+        });
+
+        // Sidebar y submenu toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const body = document.body;
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            body.classList.toggle('sidebar-open');
+        }
+
+        function toggleSubmenu(element) {
+            element.classList.toggle('active');
+            const submenu = element.nextElementSibling;
+            if (submenu.style.maxHeight) {
+                submenu.style.maxHeight = null;
+            } else {
+                submenu.style.maxHeight = submenu.scrollHeight + "px";
+            }
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.querySelector('.hamburger-btn');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (!sidebar.contains(event.target) && !hamburger.contains(event.target) && sidebar.classList.contains('open')) {
+                toggleSidebar();
             }
         });
     </script>

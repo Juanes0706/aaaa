@@ -137,6 +137,38 @@
         }
 
         window.onload = loadCategorias;
+
+        // Sidebar y submenu toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const body = document.body;
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            body.classList.toggle('sidebar-open');
+        }
+
+        function toggleSubmenu(element) {
+            element.classList.toggle('active');
+            const submenu = element.nextElementSibling;
+            if (submenu.style.maxHeight) {
+                submenu.style.maxHeight = null;
+            } else {
+                submenu.style.maxHeight = submenu.scrollHeight + "px";
+            }
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.querySelector('.hamburger-btn');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (!sidebar.contains(event.target) && !hamburger.contains(event.target) && sidebar.classList.contains('open')) {
+                toggleSidebar();
+            }
+        });
     </script>
 </body>
 </html>
