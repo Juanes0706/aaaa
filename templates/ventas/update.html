@@ -68,6 +68,7 @@
 
     <script>
         const API_URL = '/compras';
+        let ventaActual = null;
 
         // 1. Cargar la lista de ventas en el selector
         async function loadVentaSelector() {
@@ -82,7 +83,8 @@
                 let options = '<option value="">-- Seleccione una Venta --</option>';
                 ventas.forEach(venta => {
                     const clienteNombre = venta.cliente ? venta.cliente.nombre : 'Cliente Desconocido';
-                    options += `<option value="${venta.id}">ID ${venta.id} - ${clienteNombre} - Total: $${venta.total}</option>`;
+                    const productoNombre = venta.producto ? venta.producto.nombre : 'Producto Desconocido';
+                    options += `<option value="${venta.id}">ID ${venta.id} - ${clienteNombre} - ${productoNombre} - Total: $${venta.total}</option>`;
                 });
                 select.innerHTML = options;
 
@@ -97,6 +99,7 @@
             const detailsDiv = document.getElementById('venta-details');
             if (!id) {
                 detailsDiv.innerHTML = '';
+                ventaActual = null;
                 return;
             }
 
@@ -106,24 +109,24 @@
                 if (!response.ok) throw new Error('Venta no encontrada.');
 
                 const venta = await response.json();
+                ventaActual = venta;
 
                 // Renderizar formulario con datos actuales
                 detailsDiv.innerHTML = `
                     <form id="update-venta-form">
-                        <input type="hidden" id="venta_id" value="${venta.id}">
-                        
                         <h2>Venta Seleccionada: ID ${venta.id}</h2>
-                        <p>Cliente: ${venta.cliente ? venta.cliente.nombre : 'N/A'}</p>
-                        <p>Producto: ${venta.producto ? venta.producto.nombre : 'N/A'}</p>
+                        <p><strong>Cliente:</strong> ${venta.cliente ? venta.cliente.nombre : 'N/A'}</p>
+                        <p><strong>Producto:</strong> ${venta.producto ? venta.producto.nombre : 'N/A'}</p>
+                        <p><strong>Fecha:</strong> ${new Date(venta.fecha).toLocaleDateString('es-ES')}</p>
                         
                         <label for="cantidad">Cantidad:</label>
-                        <input type="number" id="cantidad" value="${venta.cantidad}" required>
+                        <input type="number" id="cantidad" value="${venta.cantidad}" required min="1">
 
                         <label for="precio_unitario_aplicado">Precio Unitario Aplicado:</label>
-                        <input type="number" step="0.01" id="precio_unitario_aplicado" value="${venta.precio_unitario_aplicado}" required>
+                        <input type="number" step="0.01" id="precio_unitario_aplicado" value="${venta.precio_unitario_aplicado}" required min="0">
 
                         <label for="total">Total:</label>
-                        <input type="number" step="0.01" id="total" value="${venta.total}" required>
+                        <input type="number" step="0.01" id="total" value="${venta.total}" required min="0">
 
                         <button type="submit">Guardar Cambios</button>
                     </form>
@@ -142,19 +145,17 @@
         async function handleUpdate(event) {
             event.preventDefault();
             
-            const id = document.getElementById('venta_id').value;
-            const data = {
-                cliente_id: parseInt(document.getElementById('venta-select').selectedOptions[0].text.match(/ID \d+ - /)[0].match(/\d+/)[0]),
-                producto_id: parseInt(document.getElementById('venta-select').selectedOptions[0].text.match(/\$/)[0]),
-                cantidad: parseInt(document.getElementById('cantidad').value),
-                precio_unitario_aplicado: parseFloat(document.getElementById('precio_unitario_aplicado').value),
-                total: parseFloat(document.getElementById('total').value)
-            };
             const messageDiv = document.getElementById('message');
             messageDiv.innerHTML = '<p>Actualizando...</p>';
 
             try {
-                const response = await fetch(`${API_URL}/${id}`, {
+                const data = {
+                    cantidad: parseInt(document.getElementById('cantidad').value),
+                    precio_unitario_aplicado: parseFloat(document.getElementById('precio_unitario_aplicado').value),
+                    total: parseFloat(document.getElementById('total').value)
+                };
+
+                const response = await fetch(`${API_URL}/${ventaActual.id}`, {
                     method: 'PUT',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
@@ -163,9 +164,11 @@
                 if (response.ok) {
                     messageDiv.innerHTML = '<p style="color: green;">Venta actualizada exitosamente.</p>';
                     loadVentaSelector();
+                    document.getElementById('venta-select').value = '';
+                    document.getElementById('venta-details').innerHTML = '';
                 } else {
                     const error = await response.json();
-                    messageDiv.innerHTML = `<p style="color: red;">Error al actualizar: ${error.detail}</p>`;
+                    messageDiv.innerHTML = `<p style="color: red;">Error al actualizar: ${error.detail || 'Error desconocido'}</p>`;
                 }
             } catch (error) {
                 messageDiv.innerHTML = `<p style="color: red;">Error de red: ${error.message}</p>`;

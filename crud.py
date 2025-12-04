@@ -590,6 +590,23 @@ async def obtener_compra(db: AsyncSession, compra_id: int) -> Compra:
     return obj
 
 
+async def actualizar_compra(db: AsyncSession, compra_id: int, data: schemas.CompraUpdate) -> Compra:
+    obj = await obtener_compra(db, compra_id)
+    
+    # Si se cambió la cantidad, ajustar el stock del producto
+    if data.cantidad is not None and data.cantidad != obj.cantidad:
+        diff = obj.cantidad - data.cantidad
+        obj.producto.cantidad += diff
+    
+    # Actualizar campos
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(obj, key, value)
+    
+    await db.commit()
+    await db.refresh(obj)
+    return obj
+
+
 async def borrar_compra(db: AsyncSession, compra_id: int) -> None:
     obj = await obtener_compra(db, compra_id)
 

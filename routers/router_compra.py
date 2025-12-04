@@ -38,6 +38,14 @@ async def listar_compras(
 async def crear_compra(payload: schemas.CompraCreate, db: AsyncSession = Depends(get_db)):
     return await crud.crear_compra(db, payload)
 
+@router.get("/{compra_id}", response_model=schemas.CompraRead)
+async def obtener_compra(compra_id: int, db: AsyncSession = Depends(get_db)):
+    return await crud.obtener_compra(db, compra_id)
+
+@router.put("/{compra_id}", response_model=schemas.CompraRead)
+async def actualizar_compra(compra_id: int, payload: schemas.CompraUpdate, db: AsyncSession = Depends(get_db)):
+    return await crud.actualizar_compra(db, compra_id, payload)
+
 @router.delete("/{compra_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def eliminar_compra(compra_id: int, db: AsyncSession = Depends(get_db)):
     compra = await crud.obtener_compra(db, compra_id)
