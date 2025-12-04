@@ -66,7 +66,6 @@ class UsuarioRead(UsuarioBase):
     id: int
     creado_en: datetime
     actualizado_en: datetime
-    multimedia: Optional[List[MultimediaRead]] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -101,8 +100,7 @@ class ClienteUpdate(BaseModel):
 class ClienteRead(ClienteBase):
     id: int
     creado_en: datetime
-    multimedia: Optional[List[MultimediaRead]] = []
-
+    
     model_config = ConfigDict(from_attributes=True)
 
 
