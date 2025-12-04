@@ -63,7 +63,7 @@ async def crear_usuario(db: AsyncSession, data: schemas.UsuarioCreate) -> Usuari
     obj = Usuario(**data.model_dump())
     db.add(obj)
     await db.commit()
-    await db.refresh(obj)
+    await db.refresh(obj) # 🔄 Línea AÑADIDA para refrescar el objeto después del commit
 
     # Load multimedia to avoid lazy loading issues during serialization
     stmt = select(Usuario).where(Usuario.id == obj.id).options(selectinload(Usuario.multimedia))
@@ -145,7 +145,7 @@ async def actualizar_usuario(
         setattr(obj, field, value)
 
     await db.commit()
-    await db.refresh(obj)
+    await db.refresh(obj) # 🔄 Línea AÑADIDA para refrescar el objeto después del commit
 
     # Load multimedia to avoid lazy loading issues during serialization
     stmt = select(Usuario).where(Usuario.id == obj.id).options(selectinload(Usuario.multimedia))
@@ -198,7 +198,7 @@ async def crear_cliente(db: AsyncSession, data: schemas.ClienteCreate) -> Client
     obj = Cliente(**data.model_dump())
     db.add(obj)
     await db.commit()
-    await db.refresh(obj)
+    await db.refresh(obj) # 🔄 Refresco después del commit
 
     # Load multimedia to avoid lazy loading issues during serialization
     stmt = select(Cliente).where(Cliente.id == obj.id).options(selectinload(Cliente.multimedia))
@@ -267,10 +267,11 @@ async def actualizar_cliente(
         setattr(obj, field, value)
 
     await db.commit()
-    # 🚨 LÍNEA AÑADIDA PARA SOLUCIONAR EL PROBLEMA
-    await db.refresh(obj)
+    # ❌ LÍNEA ELIMINADA: await db.refresh(obj)
+    # Era redundante y podía causar conflicto con la carga eager.
 
     # Return a fresh object with all relationships loaded to avoid lazy loading issues
+    # Esto garantiza que el objeto final retornado esté completamente cargado.
     stmt = select(Cliente).where(Cliente.id == cliente_id).options(
         joinedload(Cliente.usuario).selectinload(Usuario.multimedia),
         selectinload(Cliente.multimedia)
