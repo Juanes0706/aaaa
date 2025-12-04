@@ -79,6 +79,8 @@ class ClienteBase(BaseModel):
     cedula: str
     tipo_cliente: Optional[str] = None    # mayorista / minorista
     cliente_frecuente: bool = False
+    telefono: Optional[str] = None
+    direccion: Optional[str] = None
     usuario_id: Optional[int] = None
 
 
@@ -91,13 +93,14 @@ class ClienteUpdate(BaseModel):
     cedula: Optional[str] = None
     tipo_cliente: Optional[str] = None
     cliente_frecuente: Optional[bool] = None
+    telefono: Optional[str] = None
+    direccion: Optional[str] = None
     usuario_id: Optional[int] = None
 
 
 class ClienteRead(ClienteBase):
     id: int
     creado_en: datetime
-    usuario: Optional[UsuarioRead] = None
     multimedia: Optional[List[MultimediaRead]] = []
 
     model_config = ConfigDict(from_attributes=True)
