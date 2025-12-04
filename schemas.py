@@ -195,7 +195,6 @@ class CompraUpdate(BaseModel):
 class CompraRead(CompraBase):
     id: int
     fecha: datetime
-    multimedia: Optional[List[MultimediaRead]] = []
 
     model_config = ConfigDict(from_attributes=True)
 
