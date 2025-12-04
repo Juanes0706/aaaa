@@ -30,11 +30,19 @@ async def actualizar_cliente(cliente_id: int, payload: schemas.ClienteUpdate, db
 
 @router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def eliminar_cliente(cliente_id: int, db: AsyncSession = Depends(get_db)):
-    cliente = await crud.obtener_cliente(db, cliente_id)
-
-    descripcion = f"Cliente '{cliente.nombre}' eliminado"
-
-    await crud._registrar_eliminado(db, "clientes", cliente.id, {"nombre": cliente.nombre})
+    from sqlalchemy import select
+    import models
+    
+    # Obtener cliente sin cargar multimedia para evitar lazy loading
+    q = await db.execute(select(models.Cliente).where(models.Cliente.id == cliente_id))
+    cliente = q.scalar_one_or_none()
+    
+    if not cliente:
+        raise HTTPException(404, "Cliente no encontrado")
+    
+    nombre_cliente = cliente.nombre
+    
+    await crud._registrar_eliminado(db, "clientes", cliente.id, {"nombre": nombre_cliente})
     await crud.borrar_cliente(db, cliente_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
