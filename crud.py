@@ -268,10 +268,8 @@ async def actualizar_cliente(
 
     await db.commit()
     # ❌ LÍNEA ELIMINADA: await db.refresh(obj)
-    # Era redundante y podía causar conflicto con la carga eager.
 
     # Return a fresh object with all relationships loaded to avoid lazy loading issues
-    # Esto garantiza que el objeto final retornado esté completamente cargado.
     stmt = select(Cliente).where(Cliente.id == cliente_id).options(
         joinedload(Cliente.usuario).selectinload(Usuario.multimedia),
         selectinload(Cliente.multimedia)
@@ -337,7 +335,8 @@ async def listar_categorias(
 
 
 async def obtener_categoria(db: AsyncSession, categoria_id: int) -> Categoria:
-    q = await db.execute(select(Categoria).where(Categoria.id == categoria_id))
+    # Aseguramos la carga ávida de productos si van a ser eliminados en cascada.
+    q = await db.execute(select(Categoria).where(Categoria.id == categoria_id).options(selectinload(Categoria.productos)))
     obj = q.scalar_one_or_none()
     if not obj:
         raise HTTPException(404, "Categoría no encontrada")
@@ -373,15 +372,32 @@ async def actualizar_categoria(
 
 async def borrar_categoria(db: AsyncSession, categoria_id: int) -> None:
     obj = await obtener_categoria(db, categoria_id)
+    
+    # 🚀 NUEVA LÓGICA: Eliminar en cascada los productos asociados.
 
-    # Verificar si tiene productos asociados
-    if obj.productos:
-        raise HTTPException(
-            400,
-            "No se puede eliminar la categoría porque tiene productos asociados",
-        )
-
-    datos = {
+    # Convertir a lista para poder iterar y borrar sin problemas de mutación
+    productos_a_eliminar = list(obj.productos)
+    
+    for producto in productos_a_eliminar:
+        # Registrar producto en historial (usamos la misma lógica que en borrar_producto)
+        datos_producto = {
+            "id": producto.id,
+            "nombre": producto.nombre,
+            "descripcion": producto.descripcion,
+            "cantidad": producto.cantidad,
+            "valor_unitario": producto.valor_unitario,
+            "valor_mayorista": producto.valor_mayorista,
+            "categoria_id": producto.categoria_id,
+            "creado_en": producto.creado_en.isoformat() if producto.creado_en else None,
+            "actualizado_en": producto.actualizado_en.isoformat() if producto.actualizado_en else None,
+        }
+        await _registrar_eliminado(db, "productos", producto.id, datos_producto)
+        
+        # Eliminar producto de la sesión
+        await db.delete(producto)
+        
+    # Registrar y eliminar la categoría
+    datos_categoria = {
         "id": obj.id,
         "nombre": obj.nombre,
         "codigo": obj.codigo,
@@ -389,9 +405,9 @@ async def borrar_categoria(db: AsyncSession, categoria_id: int) -> None:
         "actualizado_en": obj.actualizado_en.isoformat() if obj.actualizado_en else None,
     }
 
-    await _registrar_eliminado(db, "categorias", obj.id, datos)
+    await _registrar_eliminado(db, "categorias", obj.id, datos_categoria)
     await db.delete(obj)
-    await db.commit()
+    await db.commit() # Commit de toda la transacción
 
 
 # ======================================================
@@ -401,7 +417,7 @@ async def borrar_categoria(db: AsyncSession, categoria_id: int) -> None:
 async def crear_producto(db: AsyncSession, data: schemas.ProductoCreate) -> Producto:
     # Si viene categoría, validar que exista
     if data.categoria_id is not None:
-        await obtener_categoria(db, data.categoria_id)
+        await obtener_categoria(db, data.categoria_id) # Llamada a obtener_categoria no cargada
 
     obj = Producto(**data.model_dump())
     db.add(obj)

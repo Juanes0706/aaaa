@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eliminar Categoría - Inventario y Ventas API</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        /* Estilos CSS para el aviso de advertencia */
+        .warning-box {
+            background-color: #fff3cd; /* Amarillo claro */
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .warning-box strong {
+            color: #6a5300;
+        }
+    </style>
 </head>
 <body>
 
@@ -13,6 +27,11 @@
 
     <div class="container">
         <h1>Eliminar Categoría</h1>
+
+        <div class="warning-box">
+            <strong>⚠️ Advertencia de Eliminación en Cascada:</strong>
+            <p>Al eliminar una categoría, <strong>todos los productos que pertenecen a esta categoría también serán eliminados permanentemente</strong> (incluyendo su registro en el Historial de Eliminados). Por favor, asegúrate de que es la acción deseada.</p>
+        </div>
 
         <div class="form-section">
             <form id="delete-categoria-form">
@@ -41,7 +60,7 @@
 
                 if (response.ok) {
                     // La respuesta HTTP 200/204 generalmente significa éxito en DELETE
-                    messageDiv.innerHTML = '<p style="color: green;">Categoría eliminada exitosamente</p>';
+                    messageDiv.innerHTML = '<p style="color: green;">Categoría eliminada exitosamente (los productos asociados fueron eliminados en cascada).</p>';
                     this.reset();
                 } else {
                     const error = await response.json();
