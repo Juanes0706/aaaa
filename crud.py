@@ -267,6 +267,8 @@ async def actualizar_cliente(
         setattr(obj, field, value)
 
     await db.commit()
+    # 🚨 LÍNEA AÑADIDA PARA SOLUCIONAR EL PROBLEMA
+    await db.refresh(obj)
 
     # Return a fresh object with all relationships loaded to avoid lazy loading issues
     stmt = select(Cliente).where(Cliente.id == cliente_id).options(
@@ -275,7 +277,6 @@ async def actualizar_cliente(
     )
     q = await db.execute(stmt)
     return q.scalar_one()
-
 
 async def borrar_cliente(db: AsyncSession, cliente_id: int) -> None:
     obj = await obtener_cliente(db, cliente_id)
