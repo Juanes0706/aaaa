@@ -41,7 +41,7 @@
         </div>
         
         <div class="dropdown">
-            <button classtton>Ventas</button>
+            <button class="dropbtn">Ventas</button>
             <div class="dropdown-content">
                 <a href="/ventas">Ver Ventas</a>
                 <a href="/ventas/create">Crear Venta</a>
@@ -52,8 +52,10 @@
         
         <a href="/historial">Historial</a>
         <a href="/planning">Planificación</a>
-        <a href="/informacion-del-proyecto">Información del Proyecto</a>
+        <a href="/informacion_del_proyecto">Información del Proyecto</a>
     </nav>
+
+    {% include 'sidebar.html' %}
 
     <div class="container">
         <div class="main-content">
@@ -143,5 +145,39 @@
     <footer>
         <p>&copy; 2023 Inventario y Ventas API. Todos los derechos reservados.</p>
     </footer>
+
+    <script>
+        // Sidebar y submenu toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const body = document.body;
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            body.classList.toggle('sidebar-open');
+        }
+
+        function toggleSubmenu(element) {
+            element.classList.toggle('active');
+            const submenu = element.nextElementSibling;
+            if (submenu.style.maxHeight) {
+                submenu.style.maxHeight = null;
+            } else {
+                submenu.style.maxHeight = submenu.scrollHeight + "px";
+            }
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.querySelector('.hamburger-btn');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (!sidebar.contains(event.target) && !hamburger.contains(event.target) && sidebar.classList.contains('open')) {
+                toggleSidebar();
+            }
+        });
+    </script>
 </body>
 </html>
