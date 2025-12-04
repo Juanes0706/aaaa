@@ -195,6 +195,8 @@ class CompraUpdate(BaseModel):
 class CompraRead(CompraBase):
     id: int
     fecha: datetime
+    cliente: Optional["ClienteRead"] = None
+    producto: Optional["ProductoRead"] = None
 
     model_config = ConfigDict(from_attributes=True)
 
