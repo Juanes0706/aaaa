@@ -136,7 +136,7 @@
             loadCategorias('', '');
         }
 
-        window.onload = loadCategorias;
+        window.onload = () => loadCategorias();
 
         // Sidebar y submenu toggle
         function toggleSidebar() {

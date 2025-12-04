@@ -157,7 +157,7 @@
             loadClientes();
         }
 
-        window.onload = loadClientes;
+        window.onload = () => loadClientes();
 
         // Sidebar y submenu toggle
         function toggleSidebar() {
