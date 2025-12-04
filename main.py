@@ -187,6 +187,11 @@ async def informacion_del_proyecto_page(request: Request):
     return templates.TemplateResponse("informacion_del_proyecto.html", {"request": request})
 
 
+@app.get("/graficas", tags=["Pages"])
+async def graficas_page(request: Request):
+    return templates.TemplateResponse("graficas.html", {"request": request})
+
+
 # ==========================
 #   ROUTERS DE LA API
 # ==========================

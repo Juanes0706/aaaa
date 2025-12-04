@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráficas - Inventario y Ventas</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        .graficas-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .grafica-box {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2c3e50;
+        }
+
+        .grafica-box h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card h4 {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: normal;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0 0 0;
+        }
+
+        .filters {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .filter-group button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .filter-group button:hover {
+            background-color: #2980b9;
+        }
+
+        .container-graficas {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/">Inicio</a>
+        <div class="dropdown">
+            <button class="dropbtn">Categorías</button>
+            <div class="dropdown-content">
+                <a href="/categorias">Ver Categorías</a>
+                <a href="/categorias/create">Crear Categoría</a>
+                <a href="/categorias/update">Actualizar Categoría</a>
+                <a href="/categorias/delete">Eliminar Categoría</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Productos</button>
+            <div class="dropdown-content">
+                <a href="/productos">Ver Productos</a>
+                <a href="/productos/create">Crear Producto</a>
+                <a href="/productos/update">Actualizar Producto</a>
+                <a href="/productos/delete">Eliminar Producto</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Clientes</button>
+            <div class="dropdown-content">
+                <a href="/clientes">Ver Clientes</a>
+                <a href="/clientes/create">Crear Cliente</a>
+                <a href="/clientes/update">Actualizar Cliente</a>
+                <a href="/clientes/delete">Eliminar Cliente</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Ventas</button>
+            <div class="dropdown-content">
+                <a href="/ventas">Ver Ventas</a>
+                <a href="/ventas/create">Crear Venta</a>
+                <a href="/ventas/update">Actualizar Venta</a>
+                <a href="/ventas/delete">Eliminar Venta</a>
+            </div>
+        </div>
+        <a href="/historial">Historial</a>
+        <a href="/planning">Planificación</a>
+        <a href="/graficas">Gráficas</a>
+        <a href="/informacion_del_proyecto">Información del Proyecto</a>
+    </nav>
+
+    {% include 'sidebar.html' %}
+
+    <div class="container-graficas">
+        <h1>📊 Análisis y Gráficas</h1>
+
+        <!-- Estadísticas Generales -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total de Categorías</h4>
+                <div class="value" id="total-categorias">0</div>
+            </div>
+            <div class="stat-card green">
+                <h4>Total de Productos</h4>
+                <div class="value" id="total-productos">0</div>
+            </div>
+            <div class="stat-card orange">
+                <h4>Total de Clientes</h4>
+                <div class="value" id="total-clientes">0</div>
+            </div>
+            <div class="stat-card blue">
+                <h4>Total de Compras</h4>
+                <div class="value" id="total-compras">0</div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="filter-fecha-inicio">Fecha Inicio:</label>
+                <input type="date" id="filter-fecha-inicio">
+            </div>
+            <div class="filter-group">
+                <label for="filter-fecha-fin">Fecha Fin:</label>
+                <input type="date" id="filter-fecha-fin">
+            </div>
+            <div class="filter-group">
+                <label for="filter-cliente">Cliente:</label>
+                <select id="filter-cliente">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <button onclick="aplicarFiltros()">Aplicar Filtros</button>
+                <button onclick="limpiarFiltros()" style="background-color: #95a5a6; margin-top: 10px;">Limpiar</button>
+            </div>
+        </div>
+
+        <!-- Gráficas -->
+        <div class="graficas-container">
+            <!-- Gráfica: Productos por Categoría -->
+            <div class="grafica-box">
+                <h3>📦 Productos por Categoría</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chartProductosPorCategoria"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Stock por Categoría -->
+            <div class="grafica-box">
+                <h3>📈 Stock Total por Categoría</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chartStockPorCategoria"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Top 10 Productos por Stock -->
+            <div class="grafica-box">
+                <h3>🏆 Top 10 Productos por Stock</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chartTopProductos"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Compras por Cliente (Top 10) -->
+            <div class="grafica-box">
+                <h3>👥 Top 10 Clientes por Compras</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chartClientesTop"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Ventas por Mes (Full Width) -->
+            <div class="grafica-box full-width">
+                <h3>💰 Total de Ventas por Mes</h3>
+                <div class="chart-wrapper" style="height: 300px;">
+                    <canvas id="chartVentasPorMes"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Distribucion de Tipos de Cliente -->
+            <div class="grafica-box">
+                <h3>🎯 Distribución de Clientes por Tipo</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chartTiposCliente"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Clientes Frecuentes vs No Frecuentes -->
+            <div class="grafica-box">
+                <h3>⭐ Clientes Frecuentes</h3>
+                <div class="chart-wrapper">
+                    <canvas id="chartClientesFrecuentes"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica: Valor Total de Inventario por Categoría -->
+            <div class="grafica-box full-width">
+                <h3>💎 Valor Total del Inventario por Categoría</h3>
+                <div class="chart-wrapper" style="height: 300px;">
+                    <canvas id="chartValorInventario"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allCompras = [];
+        let allClientes = [];
+        let allProductos = [];
+        let allCategorias = [];
+
+        // Cargar datos
+        async function cargarDatos() {
+            try {
+                // Cargar categorías
+                const resCategorias = await fetch('/api/categorias');
+                allCategorias = await resCategorias.json();
+
+                // Cargar productos
+                const resProductos = await fetch('/api/productos');
+                allProductos = await resProductos.json();
+
+                // Cargar clientes
+                const resClientes = await fetch('/api/clientes');
+                allClientes = await resClientes.json();
+
+                // Cargar compras
+                const resCompras = await fetch('/api/compras');
+                allCompras = await resCompras.json();
+
+                // Actualizar estadísticas
+                document.getElementById('total-categorias').textContent = allCategorias.length;
+                document.getElementById('total-productos').textContent = allProductos.length;
+                document.getElementById('total-clientes').textContent = allClientes.length;
+                document.getElementById('total-compras').textContent = allCompras.length;
+
+                // Llenar filtro de clientes
+                const selectCliente = document.getElementById('filter-cliente');
+                allClientes.forEach(cliente => {
+                    const option = document.createElement('option');
+                    option.value = cliente.id;
+                    option.textContent = cliente.nombre;
+                    selectCliente.appendChild(option);
+                });
+
+                // Generar gráficas
+                generarGraficas();
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+            }
+        }
+
+        function generarGraficas() {
+            chartProductosPorCategoria();
+            chartStockPorCategoria();
+            chartTopProductos();
+            chartClientesTop();
+            chartVentasPorMes();
+            chartTiposCliente();
+            chartClientesFrecuentes();
+            chartValorInventario();
+        }
+
+        // 1. Productos por Categoría
+        function chartProductosPorCategoria() {
+            const ctx = document.getElementById('chartProductosPorCategoria').getContext('2d');
+            const data = allCategorias.map(cat => ({
+                nombre: cat.nombre,
+                productos: allProductos.filter(p => p.categoria_id === cat.id).length
+            }));
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.nombre),
+                    datasets: [{
+                        data: data.map(d => d.productos),
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // 2. Stock por Categoría
+        function chartStockPorCategoria() {
+            const ctx = document.getElementById('chartStockPorCategoria').getContext('2d');
+            const data = allCategorias.map(cat => ({
+                nombre: cat.nombre,
+                stock: allProductos
+                    .filter(p => p.categoria_id === cat.id)
+                    .reduce((sum, p) => sum + (p.cantidad || 0), 0)
+            }));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.nombre),
+                    datasets: [{
+                        label: 'Stock Total',
+                        data: data.map(d => d.stock),
+                        backgroundColor: '#36A2EB'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // 3. Top 10 Productos por Stock
+        function chartTopProductos() {
+            const ctx = document.getElementById('chartTopProductos').getContext('2d');
+            const data = [...allProductos]
+                .sort((a, b) => (b.cantidad || 0) - (a.cantidad || 0))
+                .slice(0, 10);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(p => p.nombre.substring(0, 15)),
+                    datasets: [{
+                        label: 'Stock',
+                        data: data.map(p => p.cantidad || 0),
+                        backgroundColor: '#4BC0C0'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // 4. Top 10 Clientes por Compras
+        function chartClientesTop() {
+            const ctx = document.getElementById('chartClientesTop').getContext('2d');
+            const comprasPorCliente = {};
+            allCompras.forEach(compra => {
+                comprasPorCliente[compra.cliente_id] = (comprasPorCliente[compra.cliente_id] || 0) + 1;
+            });
+
+            const topClientes = Object.entries(comprasPorCliente)
+                .map(([clienteId, count]) => ({
+                    nombre: allClientes.find(c => c.id == clienteId)?.nombre || 'Desconocido',
+                    compras: count
+                }))
+                .sort((a, b) => b.compras - a.compras)
+                .slice(0, 10);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topClientes.map(c => c.nombre.substring(0, 12)),
+                    datasets: [{
+                        label: 'Número de Compras',
+                        data: topClientes.map(c => c.compras),
+                        backgroundColor: '#FF9F40'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // 5. Ventas por Mes
+        function chartVentasPorMes() {
+            const ctx = document.getElementById('chartVentasPorMes').getContext('2d');
+            const ventasPorMes = {};
+
+            allCompras.forEach(compra => {
+                const fecha = new Date(compra.fecha);
+                const mes = fecha.toLocaleString('es-ES', { year: 'numeric', month: 'short' });
+                ventasPorMes[mes] = (ventasPorMes[mes] || 0) + compra.total;
+            });
+
+            const labels = Object.keys(ventasPorMes);
+            const data = Object.values(ventasPorMes);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Ventas ($)',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#667eea'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // 6. Tipos de Cliente
+        function chartTiposCliente() {
+            const ctx = document.getElementById('chartTiposCliente').getContext('2d');
+            const tiposCliente = {};
+            allClientes.forEach(cliente => {
+                const tipo = cliente.tipo_cliente || 'No especificado';
+                tiposCliente[tipo] = (tiposCliente[tipo] || 0) + 1;
+            });
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(tiposCliente),
+                    datasets: [{
+                        data: Object.values(tiposCliente),
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // 7. Clientes Frecuentes
+        function chartClientesFrecuentes() {
+            const ctx = document.getElementById('chartClientesFrecuentes').getContext('2d');
+            const frecuentes = allClientes.filter(c => c.cliente_frecuente).length;
+            const noFrecuentes = allClientes.length - frecuentes;
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Frecuentes', 'No Frecuentes'],
+                    datasets: [{
+                        data: [frecuentes, noFrecuentes],
+                        backgroundColor: ['#11998e', '#ecf0f1']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // 8. Valor Total del Inventario
+        function chartValorInventario() {
+            const ctx = document.getElementById('chartValorInventario').getContext('2d');
+            const valorPorCategoria = allCategorias.map(cat => ({
+                nombre: cat.nombre,
+                valor: allProductos
+                    .filter(p => p.categoria_id === cat.id)
+                    .reduce((sum, p) => sum + ((p.cantidad || 0) * (p.valor_unitario || 0)), 0)
+            }));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: valorPorCategoria.map(v => v.nombre),
+                    datasets: [{
+                        label: 'Valor ($)',
+                        data: valorPorCategoria.map(v => v.valor),
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function aplicarFiltros() {
+            console.log('Filtros aplicados (próxima iteración)');
+            generarGraficas();
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filter-fecha-inicio').value = '';
+            document.getElementById('filter-fecha-fin').value = '';
+            document.getElementById('filter-cliente').value = '';
+            generarGraficas();
+        }
+
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const body = document.body;
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            body.classList.toggle('sidebar-open');
+        }
+
+        function toggleSubmenu(element) {
+            element.classList.toggle('active');
+            const submenu = element.nextElementSibling;
+            if (submenu.style.maxHeight) {
+                submenu.style.maxHeight = null;
+            } else {
+                submenu.style.maxHeight = submenu.scrollHeight + "px";
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.querySelector('.hamburger-btn');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar.contains(event.target) && !hamburger.contains(event.target) && sidebar.classList.contains('open')) {
+                toggleSidebar();
+            }
+        });
+
+        // Cargar datos al iniciar
+        window.onload = () => cargarDatos();
+    </script>
+</body>
+</html>
