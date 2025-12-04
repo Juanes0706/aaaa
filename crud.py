@@ -278,7 +278,17 @@ async def actualizar_cliente(
     return q.scalar_one()
 
 async def borrar_cliente(db: AsyncSession, cliente_id: int) -> None:
-    obj = await obtener_cliente(db, cliente_id)
+    from sqlalchemy import select
+    
+    # Obtener sin cargar multimedia para evitar greenlet error
+    q = await db.execute(
+        select(Cliente).where(Cliente.id == cliente_id)
+        .options(selectinload(Cliente.compras))
+    )
+    obj = q.scalar_one_or_none()
+    
+    if not obj:
+        raise HTTPException(404, "Cliente no encontrado")
 
     # Opcional: bloquear si tiene compras
     if obj.compras:
@@ -484,7 +494,17 @@ async def actualizar_producto(
 
 
 async def borrar_producto(db: AsyncSession, producto_id: int) -> None:
-    obj = await obtener_producto(db, producto_id)
+    from sqlalchemy import select
+    
+    # Obtener sin cargar multimedia para evitar greenlet error
+    q = await db.execute(
+        select(Producto).where(Producto.id == producto_id)
+        .options(selectinload(Producto.compras))
+    )
+    obj = q.scalar_one_or_none()
+    
+    if not obj:
+        raise HTTPException(404, "Producto no encontrado")
 
     # Si el producto tiene compras registradas, puedes decidir si bloquear o permitir
     if obj.compras:
@@ -534,7 +554,7 @@ async def crear_compra(db: AsyncSession, data: schemas.CompraCreate) -> Compra:
     producto.cantidad -= data.cantidad
 
     await db.commit()
-    await db.refresh(obj)
+    await db.refresh(obj, ["cliente", "producto"])
     return obj
 
 
@@ -608,7 +628,17 @@ async def actualizar_compra(db: AsyncSession, compra_id: int, data: schemas.Comp
 
 
 async def borrar_compra(db: AsyncSession, compra_id: int) -> None:
-    obj = await obtener_compra(db, compra_id)
+    from sqlalchemy import select
+    
+    # Obtener con producto para revertir stock
+    q = await db.execute(
+        select(Compra).where(Compra.id == compra_id)
+        .options(selectinload(Compra.producto))
+    )
+    obj = q.scalar_one_or_none()
+    
+    if not obj:
+        raise HTTPException(404, "Compra no encontrada")
 
     # Revertir stock del producto
     producto = obj.producto
